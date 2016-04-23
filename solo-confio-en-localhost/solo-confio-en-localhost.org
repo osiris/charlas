@@ -12,18 +12,64 @@
     ┏━┓┏━┓╻  ┏━┓   ┏━╸┏━┓┏┓╻┏━╸╻┏━┓
     ┗━┓┃ ┃┃  ┃ ┃   ┃  ┃ ┃┃┗┫┣╸ ┃┃ ┃
     ┗━┛┗━┛┗━╸┗━┛   ┗━╸┗━┛╹ ╹╹  ╹┗━┛
-    
+
     ┏━╸┏┓╻   ╻  ┏━┓┏━╸┏━┓╻  ╻ ╻┏━┓┏━┓╺┳╸
-    ┣╸ ┃┗┫   ┃  ┃ ┃┃  ┣━┫┃  ┣━┫┃ ┃┗━┓ ┃ 
-    ┗━╸╹ ╹   ┗━╸┗━┛┗━╸╹ ╹┗━╸╹ ╹┗━┛┗━┛ ╹ 
+    ┣╸ ┃┗┫   ┃  ┃ ┃┃  ┣━┫┃  ┣━┫┃ ┃┗━┓ ┃
+    ┗━╸╹ ╹   ┗━╸┗━┛┗━╸╹ ╹┗━╸╹ ╹┗━┛┗━┛ ╹
   #+END_EXAMPLE
 
   - usando *SSH* podemos tener *acceso remoto seguro*
   - con tuneles *saltear Firewalls*
   - podemos usarlo para armar una *VPN*
   - *cifrar conexiones* a bases de datos
-  
-* Tuneles SSH
+
+* Soy "OSiRiS" también conocido por "OSiUX"
+
+  - trabajo en *gcoop Cooperativa de Software Libre*
+  - pueden ver el corto *Códigos Cooperativos*
+
+    http://gcoop.coop/codigos-cooperativos
+
+  - programo en =PHP= y en =BASH=
+  - últimamente hago mucho de SysAdmin
+  - hago casi todo desde consola
+  - no podría vivir sin =SSH=
+  - soy desconfiado (me dicen paranoico)
+
+* Compartiendo la Sesion
+
+  En lugar de Slides estáticos, pueden conectarse a mi notebook
+  y ver de cerca cómo me equivoco al tipear :)
+
+  - desde una terminal
+
+    #+BEGIN_EXAMPLE
+      ssh flisol@caipiroska.lan
+    #+END_EXAMPLE
+
+  - desde de un browser
+
+    - https://caipiroska.lan:4200/
+
+* Qué es SSH?
+
+  Si pensás que estas en la charla equivocada porque no sabés
+  para qué es SSH y ya lo repetí muchas veces...acá una pista
+
+  - para parecer un hacker de película
+  - acceder remotamente a compus, routers, smartphones, etc
+
+* Porqué usar SSH?
+
+  - funciona con angosto de banda
+  - automatizar tareas
+  - acceder a muchos servidores
+  - todo el tráfico viaja cifrado
+  - saltear firewalls
+
+* Túneles SSH
+
+  Para qué sirven los túneles SSH?
 
 ** si tu ISP bloquea el puerto 25, usa el 2525 :)
 
@@ -45,22 +91,22 @@
   - obtener acceso SSH salteando un firewall
 
     #+BEGIN_SRC sh :session :results none
-      ssh -fN -R 2222:localhost:22 osiux.com
+      ssh -fN -R 2020:localhost:22 stout &
     #+END_SRC
 
   - test
 
     #+BEGIN_SRC sh :session :results output :exports both
-      ssh osiux.com -- nc -vz localhost 2222 2>&1
+      ssh stout -- nc -vz localhost 2020 2>&1
     #+END_SRC
 
     #+RESULTS:
-    : localhost.localdomain [127.0.0.1] 2222 (?) open
+    : Connection to localhost 2020 port [tcp/*] succeeded!
 
-* Proxy SOCKS 
+* Proxy SOCKS
 
 ** iniciar proxy
-     
+
    #+BEGIN_SRC sh :session :results none
      ssh -fN -D 9090 osiux.com &
    #+END_SRC
@@ -124,7 +170,79 @@
    : tcp 0 0 10.254.112.4:43019 198.23.230.106:80 TIME_WAIT - timewait (53,76/0/0)
    : tcp 0 0 10.254.112.4:40684 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
    : tcp 0 0 10.254.112.4:40682 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
-   
+
+* NO Passwords
+** Generar llave
+
+   #+BEGIN_SRC sh :session :results output
+     ssh-keygen -t rsa -b 4096 -P secreto -f ~/.ssh/seguro
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   Generating public/private rsa key pair.
+   Your identification has been saved in /home/osiris/.ssh/seguro.
+   Your public key has been saved in /home/osiris/.ssh/seguro.pub.
+   The key fingerprint is:
+   56:88:72:87:92:50:67:25:71:09:db:27:c6:3a:43:1f osiris@caipiroska
+   The key's randomart image is:
+   +---[RSA 4096]----+
+   |  ... *+o.       |
+   |   . + O..       |
+   |    + * E o      |
+   |     = = =       |
+   |      + S        |
+   |       +         |
+   |                 |
+   |                 |
+   |                 |
+   +-----------------+
+#+end_example
+
+** AgentForwarding
+
+   #+BEGIN_EXAMPLE
+     ssh-add ~/.ssh/id_rsa
+   #+END_EXAMPLE
+
+   #+BEGIN_SRC sh :session :results output
+     ssh-agent
+   #+END_SRC
+
+   #+RESULTS:
+   : SSH_AUTH_SOCK=/tmp/ssh-yaQQtEwiEWnr/agent.3695; export SSH_AUTH_SOCK;
+   : SSH_AGENT_PID=3696; export SSH_AGENT_PID;
+   : echo Agent pid 3696;
+
+   #+BEGIN_SRC sh :session :results output
+     eval `ssh-agent`
+   #+END_SRC
+
+   #+RESULTS:
+   : Agent pid 3886
+
+** listar llaves en agente
+
+   #+BEGIN_SRC sh :session :results output
+     ssh-add -l | awk '{print $2}'
+   #+END_SRC
+
+   #+RESULTS:
+   : 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12
+   : 60:e6:e4:f2:ae:b6:f7:3a:58:ca:e9:58:a5:06:d2:42
+   : e6:bd:6d:f7:e1:d7:85:3a:26:38:8d:b7:f7:c6:6b:7d
+
+** keychain
+
+   #+BEGIN_EXAMPLE
+     if [ -e /usr/bin/keychain ]
+     then
+        eval `keychain -q --eval --agents ssh id_rsa`
+        eval `keychain -q --eval --agents ssh db_rsa`
+        eval `keychain -q --eval --agents ssh web_rsa`
+     fi
+   #+END_EXAMPLE
+
 * Man In The Middle
 
   Es posible que alguien se haga pasar por nuestro servidor,
@@ -163,8 +281,6 @@
    : e7:00:30:cc:2b:a7:b8:8c:2b:85:76:a0:bc:ef:09:91
    : ea:67:d7:52:16:d1:a7:12:15:84:f9:f4:00:17:b5:c0
 
-* NO Passwords
-
 ** fingerprint de nuestra llave local
 
     #+BEGIN_SRC sh :session :results output :exports both
@@ -194,44 +310,107 @@
    #+RESULTS:
    : 2048 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12   (RSA)
 
-* SSH Config
+* SSH Config I
 
-  - lo más básico
+  definir un =host= indicando =hostname= y =port=
 
-    #+BEGIN_SRC sh :session :results output :exports both
-      grep -A2 "Host osiux.com" ~/.ssh/config
-    #+END_SRC
+  #+BEGIN_SRC sh :session :results output :exports both
+    grep -A2 "Host osiux$" ~/.ssh/config
+  #+END_SRC
 
-    #+RESULTS:
-    : Host osiux.com
-    :      Hostname 198.23.230.106
-    :      Port 22
+  #+RESULTS:
+  : Host osiux
+  :      Hostname 198.23.230.106
+  :      Port 22
 
-* SSH Config + Multi SSH Config
+* SSH Config II
 
-   #+BEGIN_SRC sh :session :results output :exports both
-     head -16 ~/.ssh/config
+  #+BEGIN_SRC sh :session :results output :exports both
+    head -8 ~/.ssh/config
+  #+END_SRC
+
+  #+RESULTS:
+  : Host *
+  :      ProtocolKeepAlives 30
+  :      ControlMaster auto
+  :      ControlPath ~/.ssh/.master-%r@%h:%p
+  :      Compression yes
+  :      Protocol 2
+  :      CompressionLevel 7
+  :      Cipher blowfish
+
+* SSH Config III
+
+  #+BEGIN_SRC sh :session :results output :exports both
+    head -16 ~/.ssh/config | tail -8
+  #+END_SRC
+
+  #+RESULTS:
+  :      ServerAliveCountMax 3
+  :      ServerAliveInterval 600
+  :      StrictHostKeyChecking yes
+  :      VisualHostKey yes
+  :      NoHostAuthenticationForLocalhost yes
+  :      LogLevel FATAL
+  :      UseRoaming no
+  :
+
+* Multi SSH Config, porqué?
+
+  - crear "N" alias para cada host
+  - compartir acceso a servidores por un equipo
+  - versionar cambios en repositorio git
+  - definir túneles complejos (muchos saltos)
+  - unificar llaves SSH por rol/equipo
+  - mejorar la seguridad, =forwardAgent no=, 1 sola llave
+  - generar alias =/etc/ansible/hosts=
+  - generar alias y grupos de =parallel-ssh=
+  - graficar acceso a hosts :)
+
+* Multi SSH Config en 3 pasos
+
+** Obtener repositorio:
+
+   #+BEGIN_EXAMPLE
+     git clone https://github.com:osiris/multi-ssh-config.git
+   #+END_EXAMPLE
+
+** Configurar los hosts:
+
+   #+BEGIN_SRC sh :session :results output
+     cd ~/.ssh/config.d
+     find -type f | wc -l
+     grep -hr LocalForward * | wc -l
+     grep -hr RemoteForward * | wc -l
+     grep -hr Port * | sort -u | wc -l
+     grep -hr User * | sort -u | wc -l
+     grep -hr IdentityFile * | sort -u | wc -l
    #+END_SRC
 
    #+RESULTS:
-   #+begin_example
-   Host *
-        ProtocolKeepAlives 30
-        ControlMaster auto
-        ControlPath ~/.ssh/.master-%r@%h:%p
-        Compression yes
-        Protocol 2
-        CompressionLevel 7
-        Cipher blowfish
-        ServerAliveCountMax 3
-        ServerAliveInterval 600
-        StrictHostKeyChecking yes
-        VisualHostKey yes
-        NoHostAuthenticationForLocalhost yes
-        LogLevel FATAL
-        UseRoaming no
+   : 491
+   : 249
+   : 29
+   : 97
+   : 34
+   : 16
 
-#+end_example
+** Generar =~/.ssh/config=
+
+   #+BEGIN_EXAMPLE
+     ⌂ sshconfig
+
+     Config Directory: /home/osiris/.ssh/config.d
+     Backup /home/osiris/.ssh/config to /home/osiris/.ssh/bak/config.1461392552
+     Add default to /home/osiris/.ssh/config
+     Host agente ...
+     Host atusud ...
+     Host formulariosatusu ...
+     Host fundaciond ...
+     Host srcc1001lx ...
+     ...
+
+   #+END_EXAMPLE
 
 * compartir es bueno *CC-BY-SA*
 
@@ -240,13 +419,15 @@
   - *compartir*, copiar, distribuir, ejecutar
   - *comunicar* públicamente la obra
   - hacer *obras derivadas*
-  - hacer un *uso comercial* de esta obra 
+  - hacer un *uso comercial* de esta obra
 
 * gracias!
 
   - preguntas, dudas y sugerencias a:
-    - mailto:OSiUX@osiux.com
+    - mailto:OSiUX@OSiUX.com
 
   - encontrá ésta y otras cuarlas en:
     - http://pub.osiux.com/charlas
 
+  - y el source en:
+    - https://github.com/osiris/charlas
