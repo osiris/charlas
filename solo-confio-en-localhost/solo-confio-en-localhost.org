@@ -1,0 +1,252 @@
+#+TITLE:     solo confío en localhost
+#+AUTHOR:    Osiris Alejandro Gómez
+#+EMAIL:     osiux@osiux.com
+#+DATE:      2016-04-23
+#+LANGUAGE:  es
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="osiux.css" />
+#+OPTIONS: ::t *:t f:t num:nil |:t -:t H:3 toc:nil timestamp:nil tags:nil html-scripts:nil html-style:nil author:t creator:t email:nil emphasize:t
+
+* █
+
+  #+BEGIN_EXAMPLE
+    ┏━┓┏━┓╻  ┏━┓   ┏━╸┏━┓┏┓╻┏━╸╻┏━┓
+    ┗━┓┃ ┃┃  ┃ ┃   ┃  ┃ ┃┃┗┫┣╸ ┃┃ ┃
+    ┗━┛┗━┛┗━╸┗━┛   ┗━╸┗━┛╹ ╹╹  ╹┗━┛
+    
+    ┏━╸┏┓╻   ╻  ┏━┓┏━╸┏━┓╻  ╻ ╻┏━┓┏━┓╺┳╸
+    ┣╸ ┃┗┫   ┃  ┃ ┃┃  ┣━┫┃  ┣━┫┃ ┃┗━┓ ┃ 
+    ┗━╸╹ ╹   ┗━╸┗━┛┗━╸╹ ╹┗━╸╹ ╹┗━┛┗━┛ ╹ 
+  #+END_EXAMPLE
+
+  - usando *SSH* podemos tener *acceso remoto seguro*
+  - con tuneles *saltear Firewalls*
+  - podemos usarlo para armar una *VPN*
+  - *cifrar conexiones* a bases de datos
+  
+* Tuneles SSH
+
+** si tu ISP bloquea el puerto 25, usa el 2525 :)
+
+    #+BEGIN_SRC sh :session :results none
+      ssh -fN -L 2525:localhost:25 osiux.com &
+    #+END_SRC
+
+** verificar tunel:
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     nc -vz localhost 2525 2>&1
+   #+END_SRC
+
+   #+RESULTS:
+   : Connection to localhost 2525 port [tcp/*] succeeded!
+
+* Tunel Reverso
+
+  - obtener acceso SSH salteando un firewall
+
+    #+BEGIN_SRC sh :session :results none
+      ssh -fN -R 2222:localhost:22 osiux.com
+    #+END_SRC
+
+  - test
+
+    #+BEGIN_SRC sh :session :results output :exports both
+      ssh osiux.com -- nc -vz localhost 2222 2>&1
+    #+END_SRC
+
+    #+RESULTS:
+    : localhost.localdomain [127.0.0.1] 2222 (?) open
+
+* Proxy SOCKS 
+
+** iniciar proxy
+     
+   #+BEGIN_SRC sh :session :results none
+     ssh -fN -D 9090 osiux.com &
+   #+END_SRC
+
+** navegar sin proxy
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     curl pub.osiux.com/ip/index.php
+   #+END_SRC
+
+   #+RESULTS:
+   : 190.245.117.62
+
+** navegar con proxy (no usamos nuestra IP)
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     curl --socks5 localhost:9090 pub.osiux.com/ip/index.php
+   #+END_SRC
+
+   #+RESULTS:
+   : 198.23.230.106
+
+* Proxy SOCKS chat
+
+** configurar proxy en cuentas:
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     grep -C1 localhost ~/.purple/accounts.xml | sort -u
+   #+END_SRC
+
+   #+RESULTS:
+   : --
+   : 			<host>localhost</host>
+   : 			<port>9129</port>
+   : 			<type>socks5</type>
+
+** configurar proxy en =~/.ssh/config=
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     grep -B3 9129 ~/.ssh/config
+   #+END_SRC
+
+   #+RESULTS:
+   : Host gin
+   :      Hostname 198.23.230.106
+   :      Port 22
+   :      DynamicForward :9129
+
+** verificar conexión
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     netstat -puntoa | grep 198.23.230.106 | sed 's/ \+/ /g'
+   #+END_SRC
+
+   #+RESULTS:
+   : tcp 0 0 10.254.112.4:38315 198.23.230.106:22 ESTABLISHED 12369/ssh keepalive (7043,72/0/0)
+   : tcp 0 0 10.254.112.4:43017 198.23.230.106:80 TIME_WAIT - timewait (23,74/0/0)
+   : tcp 0 0 10.254.112.4:43018 198.23.230.106:80 TIME_WAIT - timewait (38,70/0/0)
+   : tcp 0 0 10.254.112.4:40672 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
+   : tcp 0 0 10.254.112.4:40683 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
+   : tcp 0 0 10.254.112.4:43019 198.23.230.106:80 TIME_WAIT - timewait (53,76/0/0)
+   : tcp 0 0 10.254.112.4:40684 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
+   : tcp 0 0 10.254.112.4:40682 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
+   
+* Man In The Middle
+
+  Es posible que alguien se haga pasar por nuestro servidor,
+  por ello es necesario saber y verificar nuestro fingerprint,
+  y confiar sólo en los fingerprint que conocemos!
+
+  #+BEGIN_EXAMPLE
+    ssh -o StrictHostKeyChecking=yes
+  #+END_EXAMPLE
+
+** Obtener fingerprint del servidor
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     ssh-keygen -l -f /etc/ssh/ssh_host_rsa_key.pub | tr " " "\n"
+   #+END_SRC
+
+   #+RESULTS:
+   : 2048
+   : ac:4e:79:d1:1d:27:3c:b6:f3:25:ec:36:17:88:c9:72
+   : /etc/ssh/ssh_host_rsa_key.pub
+   : (RSA)
+
+** Verificar fingerprint al conectarse
+
+   #+BEGIN_SRC sh :session :results output
+     ssh-keygen -l -f ~/.ssh/known_hosts | awk '{print $2}' | sort -u
+   #+END_SRC
+
+   #+RESULTS:
+   : 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
+   : 8a:cd:26:6f:94:c2:49:c8:46:2d:53:e7:5b:d4:4c:f8
+   : 99:fa:cb:b7:40:fd:08:94:c9:d6:48:f2:6c:0c:4f:d7
+   : a9:46:61:95:ca:a3:4b:a8:fe:48:f9:bc:e9:0f:63:47
+   : ac:4e:79:d1:1d:27:3c:b6:f3:25:ec:36:17:88:c9:72
+   : d6:4e:dc:5b:71:a3:7c:8e:85:f0:fa:4e:80:69:3b:13
+   : e7:00:30:cc:2b:a7:b8:8c:2b:85:76:a0:bc:ef:09:91
+   : ea:67:d7:52:16:d1:a7:12:15:84:f9:f4:00:17:b5:c0
+
+* NO Passwords
+
+** fingerprint de nuestra llave local
+
+    #+BEGIN_SRC sh :session :results output :exports both
+      ssh-keygen -l -f ~/.ssh/id_rsa.pub | tr " " "\n"
+    #+END_SRC
+
+    #+RESULTS:
+    : 2048
+    : 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12
+    : /home/osiris/.ssh/id_rsa.pub
+    : (RSA)
+
+** verificando nuestro fingerprint
+
+    #+BEGIN_SRC sh :session :results output :exports both
+      ssh -vvv gin uptime 2>&1 | grep pubkey | tr ' ' '\n'
+    #+END_SRC
+
+    #+RESULTS:
+
+** fingerprint de la llave permitida en el host remoto
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     ssh gin -- ssh-keygen -l -f ~/.ssh/authorized_keys
+   #+END_SRC
+
+   #+RESULTS:
+   : 2048 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12   (RSA)
+
+* SSH Config
+
+  - lo más básico
+
+    #+BEGIN_SRC sh :session :results output :exports both
+      grep -A2 "Host osiux.com" ~/.ssh/config
+    #+END_SRC
+
+    #+RESULTS:
+    : Host osiux.com
+    :      Hostname 198.23.230.106
+    :      Port 22
+
+* SSH Config + Multi SSH Config
+
+   #+BEGIN_SRC sh :session :results output :exports both
+     head -16 ~/.ssh/config
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   Host *
+        ProtocolKeepAlives 30
+        ControlMaster auto
+        ControlPath ~/.ssh/.master-%r@%h:%p
+        Compression yes
+        Protocol 2
+        CompressionLevel 7
+        Cipher blowfish
+        ServerAliveCountMax 3
+        ServerAliveInterval 600
+        StrictHostKeyChecking yes
+        VisualHostKey yes
+        NoHostAuthenticationForLocalhost yes
+        LogLevel FATAL
+        UseRoaming no
+
+#+end_example
+
+* compartir es bueno *CC-BY-SA*
+
+  *usted es libre de*:
+
+  - *compartir*, copiar, distribuir, ejecutar
+  - *comunicar* públicamente la obra
+  - hacer *obras derivadas*
+  - hacer un *uso comercial* de esta obra 
+
+* gracias!
+
+  - preguntas, dudas y sugerencias a:
+    - mailto:OSiUX@osiux.com
+
+  - encontrá ésta y otras cuarlas en:
+    - http://pub.osiux.com/charlas
+

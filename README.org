@@ -1,0 +1,38 @@
+* Charlas/Talks by OSiUX
+
+** Introducción
+
+   Este repositorio contiene el source de todas mis charlas y los
+   scripts necesarios para generar los slides en formatos:
+
+   - =.html=
+   - =.pdf=
+   - =.png=
+   - =.s5=
+
+   Los formatos de origen, entre otros son:
+
+   - =.dit= ditaa
+   - =.dot= GraphViz
+   - =.org= org-mode
+   - =.pin= PinPoint
+   - =.rst= reStructuredText
+   - =.tex= LaTeX
+   - =.txt= ASCII/UTF-8 PlainText
+   - =.uml= PlantUML
+
+   Un listado en orden cronológico de todas las charlas realizadas
+   esta disponible en:
+
+   - http://osiux.com/charlas.html
+  
+   Una explicación detallada del porqué redactar charlas de esta
+   manera se puede leer en el siguiente post:
+
+   - http://osiux.com/tengo-el-titulo-de-la-charla-y-ahora-como-hago-los-slides.html
+
+** Licencia
+
+   Salvo que se especifique lo contrario, todas las charlas estan bajo
+   la licencia *CC-BY-SA*
+
