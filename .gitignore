@@ -1,1 +1,5 @@
+*/*.bak
+*/.#*
+solo-confio-en-localhost/*.*~
+solo-confio-en-localhost/*.html
 solo-confio-en-localhost/*.pdf
