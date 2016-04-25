@@ -59,7 +59,7 @@
   - para parecer un hacker de película
   - acceder remotamente a compus, routers, smartphones, etc
 
-* Porqué usar SSH?
+* Por qué usar SSH?
 
   - funciona con angosto de banda
   - automatizar tareas
@@ -74,7 +74,7 @@
 ** si tu ISP bloquea el puerto 25, usa el 2525 :)
 
     #+BEGIN_SRC sh :session :results none
-      ssh -fN -L 2525:localhost:25 osiux.com &
+      ssh -fN -L 2525:localhost:25 gin &
     #+END_SRC
 
 ** verificar tunel:
@@ -108,7 +108,7 @@
 ** iniciar proxy
 
    #+BEGIN_SRC sh :session :results none
-     ssh -fN -D 9090 osiux.com &
+     ssh -fN -D 9090 gin &
    #+END_SRC
 
 ** navegar sin proxy
@@ -118,7 +118,7 @@
    #+END_SRC
 
    #+RESULTS:
-   : 190.245.117.62
+   : 181.109.9.31
 
 ** navegar con proxy (no usamos nuestra IP)
 
@@ -128,6 +128,14 @@
 
    #+RESULTS:
    : 198.23.230.106
+
+   #+BEGIN_SRC sh :session :results output
+     dig +short -x 198.23.230.106
+   #+END_SRC
+
+   #+RESULTS:
+   : gin.osiux.com.
+
 
 * Proxy SOCKS chat
 
@@ -162,14 +170,10 @@
    #+END_SRC
 
    #+RESULTS:
-   : tcp 0 0 10.254.112.4:38315 198.23.230.106:22 ESTABLISHED 12369/ssh keepalive (7043,72/0/0)
-   : tcp 0 0 10.254.112.4:43017 198.23.230.106:80 TIME_WAIT - timewait (23,74/0/0)
-   : tcp 0 0 10.254.112.4:43018 198.23.230.106:80 TIME_WAIT - timewait (38,70/0/0)
-   : tcp 0 0 10.254.112.4:40672 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
-   : tcp 0 0 10.254.112.4:40683 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
-   : tcp 0 0 10.254.112.4:43019 198.23.230.106:80 TIME_WAIT - timewait (53,76/0/0)
-   : tcp 0 0 10.254.112.4:40684 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
-   : tcp 0 0 10.254.112.4:40682 198.23.230.106:993 ESTABLISHED - off (0.00/0/0)
+   : tcp 0 0 192.168.43.182:48873 198.23.230.106:80 TIME_WAIT - timewait (37,54/0/0)
+   : tcp 0 1 192.168.43.182:48874 198.23.230.106:80 FIN_WAIT1 - on (1,01/0/0)
+   : tcp 0 0 192.168.43.182:40957 198.23.230.106:22 ESTABLISHED 7146/ssh keepalive (6757,39/0/0)
+   : tcp 0 0 192.168.43.182:48872 198.23.230.106:80 TIME_WAIT - timewait (20,35/0/0)
 
 * NO Passwords
 ** Generar llave
@@ -300,6 +304,12 @@
     #+END_SRC
 
     #+RESULTS:
+    : debug3:
+    : send_pubkey_test
+    : debug3:
+    : sign_and_send_pubkey:
+    : RSA
+    : 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12
 
 ** fingerprint de la llave permitida en el host remoto
 
@@ -309,17 +319,19 @@
 
    #+RESULTS:
    : 2048 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12   (RSA)
+        : 8f:6b:e1:7e:6a:94:8f:61:a4:db:2a:8a:e8:43:f3:12
+
 
 * SSH Config I
 
   definir un =host= indicando =hostname= y =port=
 
   #+BEGIN_SRC sh :session :results output :exports both
-    grep -A2 "Host osiux$" ~/.ssh/config
+    grep -A2 "Host gin$" ~/.ssh/config
   #+END_SRC
 
   #+RESULTS:
-  : Host osiux
+  : Host gin
   :      Hostname 198.23.230.106
   :      Port 22
 
@@ -331,9 +343,9 @@
 
   #+RESULTS:
   : Host *
-  :      ProtocolKeepAlives 30
   :      ControlMaster auto
   :      ControlPath ~/.ssh/.master-%r@%h:%p
+  :      ProtocolKeepAlives 30
   :      Compression yes
   :      Protocol 2
   :      CompressionLevel 7
