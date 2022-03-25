@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This script comes with ABSOLUTELY NO WARRANTY, use at own risk
 # Copyright (C) 2021 Osiris Alejandro Gomez <osiris@gcoop.coop>
@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import configparser
+from backports import configparser
 import subprocess
 import inspect
 
@@ -48,7 +48,7 @@ git = config['git']
 
 def go_sleep(seconds):
     if (seconds):
-        print inspect.stack()[1][3]
+        print (inspect.stack()[1][3])
         time.sleep(float(seconds))
 
 def ssh_tunel():
